@@ -112,4 +112,4 @@ This is a course / portfolio project, not a deployment-ready system. It uses one
 
 ## Built on
 
-A previous from-scratch study of backpropagation and neural network optimization ([microgradplus](https://github.com/Nur2424/microgradplus)) — the same MLP, autoencoder, MSE, and Adam foundations, here applied to a real signal-analysis problem in PyTorch.
+A previous from-scratch study of backpropagation and neural network optimization ([microgradplus](https://github.com/Nur2424/microgradplus)) the same MLP, autoencoder, MSE, and Adam foundations, here applied to a real signal-analysis problem in PyTorch.

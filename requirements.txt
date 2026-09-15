@@ -6,3 +6,4 @@ torch
 scipy
 jupyter
 ucimlrepo
+pyserial==3.5

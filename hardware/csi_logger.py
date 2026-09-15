@@ -1,5 +1,6 @@
-import serial, csv, re, sys, tty, termios, threading, os
+import  csv, re, sys, tty, termios, threading, os
 from datetime import datetime
+import serial  # type: ignore
 
 # ── CONFIG ─────────────────────────────────────────────
 PORT   = "/dev/cu.usbserial-0001"   # change to your port (Phase B)

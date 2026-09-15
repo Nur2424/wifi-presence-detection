@@ -27,7 +27,7 @@ No occupied label is ever used in training. Labels are only used at the very end
 
 Of the five available signals, only **Light** and **CO2** are used because they react most clearly to presence. The plot below shows all five signals over time, with occupied periods shaded red. Light jumps from near-zero to 400-800 whenever someone is present, and CO2 rises as people breathe, then falls slowly after they leave.
 
-![signals over time](results/01_signals_overview.png)
+![signals over time](results/uci/01_signals_overview.png)
 
 ## What's in here
 
@@ -75,7 +75,7 @@ All three trained only on empty windows, evaluated on the same mixed test set (4
 
 | F1 and ROC-AUC | ROC curves |
 |----------------|------------|
-| ![comparison](results/05_comparison_bar.png) | ![roc](results/05_roc_curves.png) |
+| ![comparison](results/uci/05_comparison_bar.png) | ![roc](results/uci//05_roc_curves.png) |
 
 ## What the results say
 

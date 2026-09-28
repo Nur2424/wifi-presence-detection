@@ -26,7 +26,7 @@ echo "      OK"
 # ── STEP 2: Find ESP32 port ───────────────────────────
 echo "[2/3] Looking for ESP32 on USB..."
 
-PORTS=($(ls /dev/cu.usbserial* /dev/cu.wchusbserial* /dev/cu.SLAB_USBtoUART* 2>/dev/null))
+PORTS=($(ls /dev/cu.usbserial* /dev/cu.wchusbserial* /dev/cu.SLAB_USBtoUART* /dev/cu.usbmodem* 2>/dev/null))
 
 if [ ${#PORTS[@]} -eq 0 ]; then
     echo ""
@@ -47,8 +47,15 @@ else
     for i in "${!PORTS[@]}"; do
         echo "        $i) ${PORTS[$i]}"
     done
-    read -p "      Which one is the ESP32? Enter number: " choice
-    PORT="${PORTS[$choice]}"
+    while true; do
+        read -p "      Which one is the ESP32? Enter number [0-$((${#PORTS[@]}-1))]: " choice
+        if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 0 ] && [ "$choice" -lt "${#PORTS[@]}" ]; then
+            PORT="${PORTS[$choice]}"
+            break
+        else
+            echo "      Invalid choice. Please enter a number between 0 and $((${#PORTS[@]}-1))."
+        fi
+    done
 fi
 
 # ── STEP 3: Flash firmware ────────────────────────────
@@ -59,10 +66,12 @@ echo "  hold the BOOT button on the board, then release it"
 echo "  the moment you see 'Writing...' appear."
 echo ""
 
-cd "$FIRMWARE_DIR"
+cd "$FIRMWARE_DIR" || { echo "ERROR: Firmware directory not found: $FIRMWARE_DIR"; exit 1; }
 idf.py -p "$PORT" flash
+FLASH_STATUS=$?
+cd - > /dev/null
 
-if [ $? -ne 0 ]; then
+if [ $FLASH_STATUS -ne 0 ]; then
     echo ""
     echo "ERROR: Flashing failed."
     echo ""
@@ -79,7 +88,4 @@ echo "  Firmware flashed. Starting data collection."
 echo "=============================="
 echo ""
 
-# Auto-update the port in csi_logger.py
-sed -i '' "s|PORT   = \".*\"|PORT   = \"$PORT\"|" "$LOGGER"
-
-python3 "$LOGGER"
+python3 "$LOGGER" --port "$PORT"

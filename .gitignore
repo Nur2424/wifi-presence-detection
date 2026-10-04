@@ -1,5 +1,7 @@
 venv/
 __pycache__/
 *.pyc
-.DS_Storeesp32/data/full-study/raw/
 .DS_Store
+**/.DS_Store
+esp32/data/full-study/raw/
+.ipynb_checkpoints/

@@ -1,9 +1,8 @@
-numpy
-pandas
-matplotlib
-scikit-learn
-torch
-scipy
-jupyter
-ucimlrepo
+numpy==2.3.4
+pandas==2.3.3
+scikit-learn==1.7.2
+torch==2.10.0
+matplotlib==3.10.7
 pyserial==3.5
+jupyter==1.0.0
+ipykernel==6.29.5

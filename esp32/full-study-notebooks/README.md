@@ -1,4 +1,4 @@
-# WiFi CSI Indoor Presence Detection — Full Study
+# Full-Study
 
 Binary room occupancy classification from ESP32 Channel State Information (CSI).
 This folder contains the complete study pipeline: data collected across **7 sessions
@@ -18,11 +18,11 @@ identifies the best training configuration for each model.
 |---|----------|--------------|
 | 00 | `00_preprocessing.ipynb` | Loads raw CSI CSVs, extracts 51 subcarrier amplitudes + 4 scalar stats, segments into windows (W1–W4), saves train/test splits |
 | 01 | `01_baseline_lr.ipynb` | Logistic Regression baseline across all 4 window sizes (seed 42) |
-| 02 | `02_ocsvm.ipynb` | One Class SVM trained on empty room windows only; RBF kernel, nu=0.05 |
+| 02 | `02_ocsvm.ipynb` | One Class SVM trained on empty room windows only, RBF kernel nu=0.05 |
 | 03 | `03_autoencoder.ipynb` | FC autoencoder (110 => 64 => 16 => 64 => 110) reconstruction error anomaly detector |
-| 04 | `04_cnn.ipynb` | 1D CNN local temporal pattern classifier (W2–W4; W1 excluded by design) |
+| 04 | `04_cnn.ipynb` | 1D CNN local temporal pattern classifier (W2–W4 W1 excluded by design) |
 | 05 | `05_transformer.ipynb` | CLS token Transformer with sinusoidal positional encoding |
-| 06 | `06_overlapping_windows.ipynb` | Training stride sweep (W2–W4); best stride selected per window via LR AUC averaged over 3 seeds; all 5 models re-evaluated at best stride |
+| 06 | `06_overlapping_windows.ipynb` | Training stride sweep (W2–W4) best stride selected per window via LR AUC averaged over 3 seeds, all 5 models reevaluated at best stride |
 | 07 | `07_final_results.ipynb` | Consolidated comparison baseline tables, heatmap, ΔF1 chart, conclusions |
 
 ---
@@ -30,7 +30,7 @@ identifies the best training configuration for each model.
 ## Data
 
 **Features:** 55 per frame 51 subcarrier amplitudes (magnitude of complex I/Q
-pairs) + `rssi`, `noise_floor`, `csi_mean`, `csi_std`.
+pairs) + `csi_max`, `csi_energy`, `csi_mean`, `csi_std`.
 
 **Sessions:** 7 recording sessions across multiple days and times of day.
 Labels: `empty` (room unoccupied) and `exist` (room occupied).
@@ -47,8 +47,8 @@ Labels: `empty` (room unoccupied) and `exist` (room occupied).
 Windows aggregate (N, T, 55) => (N, 110) via mean and std concatenated across
 the time axis (`aggregate_window()`).
 
-**Test set (held-out, cross day):** `session5_morning_empty` and
-`session7_morning_occupied`. Test windows are always non-overlapping regardless
+**Test set (held out, cross day):** `session5_morning_empty` and
+`session7_morning_occupied`. Test windows are always non overlapping regardless
 of training stride.
 
 ---

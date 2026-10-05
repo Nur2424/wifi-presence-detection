@@ -169,23 +169,22 @@ def evaluate(y_true, y_pred, y_score=None, verbose: bool = True) -> dict:
 
 # --- Ablation plot ------------------------------------------------------------------
 
-def plot_ablation(results: dict, metric: str = "f1", title: str = ""):
+def plot_ablation(results: dict, metric: str = "f1", title: str = "", save_path: str = None):
     """
     Line chart showing one metric across window sizes.
 
     Parameters
     ----------
-    results : {window_label: metrics_dict} e.g. {"W1": {...}, "W2": {...}}
-    metric  : Key in each metrics_dict to plot (default: 'f1').
-    title   : Plot title.
-
-    The chart is rendered to the notebook cell nothing is saved to disk.
+    results   : {window_label: metrics_dict} e.g. {"W1": {...}, "W2": {...}}
+    metric    : Key in each metrics_dict to plot (default: 'f1').
+    title     : Plot title.
+    save_path : If provided, saves the figure to this path.
     """
     labels = list(results.keys())
     values = [results[k][metric] for k in labels]
 
     fig, ax = plt.subplots(figsize=(7, 4))
-    ax.plot(labels, values, marker="o", color="#4C72B0", linewidth=2, markersize=8)
+    ax.plot(labels, values, marker="o", color="#2C7BB6", linewidth=2, markersize=8)
 
     for label, val in zip(labels, values):
         ax.annotate(
@@ -203,4 +202,6 @@ def plot_ablation(results: dict, metric: str = "f1", title: str = ""):
     ax.set_title(title or f"{metric.upper()} across window sizes")
     ax.grid(axis="y", linestyle="--", alpha=0.5)
     plt.tight_layout()
+    if save_path:
+        plt.savefig(save_path, dpi=150, bbox_inches='tight')
     plt.show()

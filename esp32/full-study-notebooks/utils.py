@@ -1,5 +1,5 @@
 """
-utils.py — shared utilities for the WIFIAD modeling notebooks (01–06).
+utils.py — shared utilities for the WIFIAD full-study modeling notebooks (01–06)
 
 Import with:
     from utils import (
@@ -9,6 +9,7 @@ Import with:
 """
 
 import numpy as np
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.metrics import (
@@ -16,19 +17,20 @@ from sklearn.metrics import (
     recall_score, roc_auc_score,
 )
 
-# ── Paths ─────────────────────────────────────────────────────────────────────
+# --- Paths -------------------------------------------------------------------
 
-PROCESSED_CSV = "../../data/full-study/processed/processed.csv"
+_HERE = os.path.dirname(os.path.abspath(__file__))
+PROCESSED_CSV = os.path.join(_HERE, "../data/full-study/processed/processed.csv")
 
-# ── Feature columns ───────────────────────────────────────────────────────────
+# --- Feature columns ----------------------------------------------------------
 
 # Guard and pilot subcarrier indices to drop (out of 64 raw amp columns)
 _DROP_IDX  = set([0, 1] + list(range(27, 37)) + [63])
 AMP_COLS   = [f"amp_{i}" for i in range(64) if i not in _DROP_IDX]   # 51 cols
 SCALAR_COLS = ["csi_mean", "csi_std", "csi_max", "csi_energy"]
-FEATURE_COLS = AMP_COLS + SCALAR_COLS                                  # 55 cols
+FEATURE_COLS = AMP_COLS + SCALAR_COLS                                # 55 cols
 
-# ── Experimental settings ─────────────────────────────────────────────────────
+# --- Experimental settings ----------------------------------------------------
 
 WINDOW_SIZES = {
     "W1_snapshot": 1,
@@ -40,13 +42,13 @@ WINDOW_SIZES = {
 # Sessions held out for evaluation (matched by substring)
 TEST_SESSIONS = ["session5_morning_empty", "session7_morning_occupied"]
 
-# ── Data loading ──────────────────────────────────────────────────────────────
+# --- Data loading ----------------------------------------------------
 
 def load_data(path: str = PROCESSED_CSV) -> pd.DataFrame:
     """
     Load processed.csv and return the full DataFrame.
 
-    The processed file is already clean — no rows are dropped here.
+    The processed file is already clean no rows are dropped here.
     Each notebook is responsible for its own feature selection.
     """
     df = pd.read_csv(path)
@@ -63,9 +65,9 @@ def make_windows(
     stride: int = None,
 ):
     """
-    Slide a fixed-length window over each recording session independently.
+    Slide a fixed length window over each recording session independently.
 
-    Windows never cross session boundaries — each session is windowed
+    Windows never cross session boundaries each session is windowed
     separately and the results are concatenated.
 
     Parameters
@@ -74,12 +76,12 @@ def make_windows(
     window_size  : Number of rows per window.
     feature_cols : Columns to include as features (default: all 55).
     stride       : Step between window starts. Defaults to window_size
-                   (non-overlapping windows).
+                   (non overlapping windows).
 
     Returns
     -------
     X        : ndarray of shape (n_windows, window_size, n_features)
-    y        : ndarray of shape (n_windows,) — majority label per window
+    y        : ndarray of shape (n_windows,) majority label per window
     sessions : list of session names, one per window
     """
     if stride is None:
@@ -100,20 +102,20 @@ def make_windows(
 
     if not X_list:
         raise ValueError(
-            f"No windows produced — dataset too small for window_size={window_size}."
+            f"No windows produced dataset too small for window_size={window_size}."
         )
 
     return np.array(X_list), np.array(y_list), sess_list
 
 
-# ── Train / test split ────────────────────────────────────────────────────────
+# --- Train / test split ------------------------------------------------------
 
 def session_split(X, y, sessions, test_sessions=TEST_SESSIONS):
     """
     Split windows into train and test sets by session name.
 
     A window goes to the test set if its session name contains any of the
-    substrings in `test_sessions`; all others go to train.
+    substrings in `test_sessions` all others go to train.
 
     Returns
     -------
@@ -127,7 +129,7 @@ def session_split(X, y, sessions, test_sessions=TEST_SESSIONS):
     return X[~test_mask], X[test_mask], y[~test_mask], y[test_mask]
 
 
-# ── Evaluation ────────────────────────────────────────────────────────────────
+# --- Evaluation ---------------------------------------------------------
 
 def evaluate(y_true, y_pred, y_score=None, verbose: bool = True) -> dict:
     """
@@ -135,14 +137,14 @@ def evaluate(y_true, y_pred, y_score=None, verbose: bool = True) -> dict:
 
     Parameters
     ----------
-    y_true  : Ground-truth binary labels.
+    y_true  : Ground truth binary labels.
     y_pred  : Predicted binary labels.
-    y_score : Continuous scores for ROC-AUC (optional).
-    verbose : If True, print a one-line summary.
+    y_score : Continuous scores for ROC-AUC (optional)
+    verbose : If True, print a one line summary.
 
     Returns
     -------
-    dict with keys: accuracy, f1, precision, recall, roc_auc (None if no scores).
+    dict with keys: accuracy, f1, precision, recall, roc_auc (None if no scores)
     """
     metrics = {
         "accuracy":  accuracy_score(y_true, y_pred),
@@ -165,7 +167,7 @@ def evaluate(y_true, y_pred, y_score=None, verbose: bool = True) -> dict:
     return metrics
 
 
-# ── Ablation plot ─────────────────────────────────────────────────────────────
+# --- Ablation plot ------------------------------------------------------------------
 
 def plot_ablation(results: dict, metric: str = "f1", title: str = ""):
     """
@@ -173,11 +175,11 @@ def plot_ablation(results: dict, metric: str = "f1", title: str = ""):
 
     Parameters
     ----------
-    results : {window_label: metrics_dict} — e.g. {"W1": {...}, "W2": {...}}
+    results : {window_label: metrics_dict} e.g. {"W1": {...}, "W2": {...}}
     metric  : Key in each metrics_dict to plot (default: 'f1').
     title   : Plot title.
 
-    The chart is rendered to the notebook cell; nothing is saved to disk.
+    The chart is rendered to the notebook cell nothing is saved to disk.
     """
     labels = list(results.keys())
     values = [results[k][metric] for k in labels]

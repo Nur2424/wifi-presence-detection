@@ -1,8 +1,8 @@
 # wifi-presence-detection
 
-Passive room occupancy detection from raw 802.11 Channel State Information no camera, no microphone, no dedicated sensor. An ESP32 captures 51 active OFDM subcarrier amplitudes from ambient 2.4 GHz traffic, sliding windows over those amplitudes distinguish an empty room from an occupied one with F1 up to **0.9725** across held-out sessions collected on different days and times.
+Passive room occupancy detection from raw 802.11 Channel State Information no camera, no microphone, no dedicated sensor. An ESP32 captures 51 active OFDM subcarrier amplitudes from ambient 2.4 GHz traffic, sliding windows over those amplitudes distinguish an empty room from an occupied one with F1 up to **0.9725** across multiple sessions collected on different days and times.
 
-Three substudies build on each other: a single session feasibility proof, a multi session study that confronts time of day RF drift, and a UCI public dataset benchmark that validates the anomaly detection framing beyond one hardware setup.
+Three substudies build on each other: a single session feasibility proof, a multi session study that confronts time of day RF(Radio Frequency) drift, and a UCI public dataset benchmark that validates the anomaly detection framing beyond one hardware setup.
 
 ---
 
@@ -48,9 +48,9 @@ The full pipeline: raw I/Q from the ESP32 -> amplitude conversion -> guard-band 
 
 ---
 
-## Hardware & Data Collection
+## Hardware and Data Collection
 
-**Hardware:** [ESP32-WROOM-32 NodeMCU](https://www.amazon.it/-/en/dp/B0DKF9NCN1) — collects CSI via the esp-csi library at ~80 frames/s over 802.11b/g/n 2.4 GHz.
+**Hardware:** [ESP32-WROOM-32 NodeMCU](https://www.amazon.it/-/en/dp/B0DKF9NCN1) collects CSI via the esp-csi library at ~80 frames/s over 802.11b/g/n 2.4 GHz.
 
 The ESP32 firmware (`esp-csi/examples/get-started/csi_recv_router`) reports raw I/Q pairs for 64 subcarriers at 921600 baud. `hardware/csi_logger.py` reads the serial stream, converts I/Q -> amplitude via **√(i² + q²)** per subcarrier pair, discards the first 5 seconds of each capture for hardware channel stabilisation, and writes labelled rows to CSV in real time. Labels are entered on the keyboard: `0` = empty, `1` = exist.
 
@@ -73,7 +73,7 @@ Eleven labelled sessions were collected across two days in the same room with th
 
 ## Feature Engineering
 
-The ESP32 reports 64 subcarrier indices, but most of the spectrum is guard bands and a DC null. After removing indices 0–1 (lower guard band edge), 27–36 (DC null and adjacent gap), and 63 (upper guard band edge), **51 active subcarriers** remain.
+The ESP32 reports 64 subcarrier indices, but not all carry useful signal some are guard bands and an unused center carrier. After removing indices 0–1 (lower guard band), 27–36 (unused center), and 63 (upper guard band), **51 active subcarriers** remain.
 
 Four scalar statistics are computed per frame from the 51 amplitudes:
 
@@ -86,13 +86,14 @@ Four scalar statistics are computed per frame from the 51 amplitudes:
 
 This gives **55 features per frame**. For the full study, each window of T frames is aggregated as \[mean, std\] across the time axis, producing a **110-dimensional vector** per window.
 
-**Guard-band polarity.** Logistic regression feature importances expose an interpretable pattern: `amp_26` — the last active subcarrier before the gap at indices 27–36 — has the strongest positive weight, while `amp_37`–`amp_38`, the first active indices after the gap, have opposite sign. A polarity flip across the guard-band boundary is physically plausible given the multipath geometry near the DC null, this study does not isolate the underlying propagation mechanism. The pattern is a consistency check that the model responds to subcarrier structure rather than a global amplitude shift.
+**Guard-band polarity.** Logistic regression feature importances expose an interpretable pattern: `amp_26` the last active subcarrier before the gap at indices 27-36 has the strongest positive weight, while `amp_37`–`amp_38` the first active indices after the gap, have opposite sign. A polarity flip across the guard-band boundary is physically plausible given the multipath geometry near the DC null(zero frequency carrier that transmits no data), this study does not isolate the underlying propagation mechanism. The pattern is a consistency check that the model responds to subcarrier structure rather than a global amplitude shift.
 
 ![LR feature importance — guard-band polarity](esp32/full-study-notebooks/full-study-outputs/01_lr_feature_importance.png)
 
 ---
 
-## Full Study — Multi-Session Evaluation
+## Full Study 
+### Multi-Session Evaluation
 
 The full study tests cross session generalisation. Models are trained on one subset of sessions and evaluated on held-out sessions from a different day or time. The train/test split is always session level, no row level shuffling.
 
@@ -100,49 +101,48 @@ The full study tests cross session generalisation. Models are trained on one sub
 
 ![CSI temporal signal — RF drift across 11 sessions](esp32/full-study-notebooks/full-study-outputs/00_full_temporal_signal.png)
 
-### Baseline — no overlapping windows
+### Window Size and Overlapping Stride Ablation
 
-Four window sizes were evaluated against five model families:
+Five model families evaluated across four window sizes:
 
-| Window | Duration | Frames |
-|---|---|---|
-| W1 | ~12 ms | 1 |
-| W2 | ~1 s | 80 |
-| W3 | ~5 s | 400 |
-| W4 | ~10 s | 800 |
+| Window | Frames | Duration |
+|--------|--------|----------|
+| W1 | 1 | ~12 ms |
+| W2 | 80 | ~1 s | 
+| W3 | 400 | ~5 s |
+| W4 | 800 | ~10 s |
 
-At W3 and W4 without overlap, the dataset yields only 726 and 360 windows respectively. **Sample starvation not model capacity  is the binding constraint.**
 
-![F1 heatmap — all 5 models × 4 window sizes, baseline](esp32/full-study-notebooks/full-study-outputs/07_f1_heatmap.png)
+At W3 and W4, non-overlapping extraction yields only 726 and 360 windows respectively
+**sample starvation, not model capacity is the bottleneck.**
 
-All models plateau near W2, the gap between LR and deep models is narrow throughout which is the signature of a data limited regime rather than a capacity limited one.
+| | |
+|:---:|:---:|
+| ![F1 heatmap baseline](esp32/full-study-notebooks/full-study-outputs/07_f1_heatmap.png) | ![ΔF1 heatmap overlapping](esp32/full-study-notebooks/full-study-outputs/06_delta_f1_heatmap.png) |
 
-### Overlapping windows and stride ablation
+W1 (single frame) is excluded from the overlapping experiment a window of one frame cannot be cannot be strided.
 
-Strided window extraction replaces non-overlapping sampling. A sliding window of size T with stride S extracts far more training samples from the same raw data. Best strides per window:
+All models plateau near W2 the narrow gap between LR and deep models confirms a data limited regime.
+Overlapping stride addresses this directly a sliding window with stride S < T multiplies available
+training samples from the same raw recording (W2 stride-8 ≈ 10×, W4 stride-560 ≈ 1.4×).
 
-| Window | Stride | Approx. gain |
-|---|---|---|
-| W2 (80 frames, ~1 s) | 8 rows (~0.1 s) | ~10× |
-| W4 (800 frames, ~10 s) | 560 rows (7 s) | ~1.4× |
 
-W3 is excluded: the optimal stride equals the window length (non-overlapping), meaning no overlap configuration improves sample count meaningfully at that scale.
+**Best result: Autoencoder W2 stride-8 -> F1 = 0.9725, AUC = 0.9835 (~1 s observation window).**
 
-![ΔF1 from overlapping windows, all models × window sizes](esp32/full-study-notebooks/full-study-outputs/06_delta_f1_overlapping.png)
+Three findings stand out:
 
-**Best result: Autoencoder at W2 with stride 8 -> F1 = 0.9725, AUC = 0.9835, ~1 s observation window.**
+1. **LR at W4 with stride 560 frames (~7 s) reaches F1 = 0.951**, competitive with every deep model. Given 10 seconds of context and well specified features, a linear classifier is nearly sufficient.
 
-Three findings worth noting:
+2. **OCSVM degrades with overlap at W3/W4.** Near-duplicate windows crowd the one-class hypersphere
+   boundary, raising false positives. A known property of kernel one-class methods, not anomaly detection in general.
 
-1. **LR at W4 with stride 560 achieves F1 = 0.951**, competitive with every deep model. When 10 seconds of temporal context are available and the feature space is well specified, a linear classifier is nearly sufficient.
-
-2. **OCSVM degrades with overlap at W3/W4.** Near duplicate windows, stride much smaller than window length, crowd the one-class hypersphere boundary, artificially tightening the decision region and increasing false positives. This is a property of kernel one-class methods, not a general failure of anomaly detection.
-
-3. **Overlapping at W2 produces the largest gains across all models** because W2 is already at the scale where the CSI pattern is stable, and 8-row strides provide genuine diversity (0.1 s between samples) without near duplicates.
+3. **W2 produces the largest gains across all models**, at ~1 s the CSI pattern is stable and
+   0.1 s strides provide genuine sample diversity without near-duplicates.
 
 ---
 
-## Feasibility Study — Single-Session Proof of Concept
+## Feasibility Study 
+### Single-Session Proof of Concept
 
 Before building a multi-session pipeline, the feasibility study asked whether CSI amplitude
 is discriminative at all. Two sessions from the same day and room were used: one for
@@ -153,7 +153,11 @@ Autoencoder (reconstruction error threshold), and One-Class SVM. Cross-session A
 from 0.577 (CNN) to 0.746 (Conv Autoencoder) well above chance, but short of production
 thresholds. The supervised models score lower not because of model weakness but because of
 RF drift between sessions: a pattern learned in one session does not transfer cleanly to
-another.
+another. The feasibility study was intentionally small scale a single recording session,
+just enough to confirm the signal is learnable before committing to the larger
+multi-session data collection. The limited data was sufficient to answer the
+feasibility question but not to learn a session invariant representation that is 
+what the full study addresses.
 
 ![ROC curves — all models, feasibility study](esp32/feasibility-study-notebooks/feasibility-study-outputs/08_roc_all_models.png)
 
@@ -171,7 +175,8 @@ AUC plateaus early across all models. Larger windows give marginal improvement b
 
 ---
 
-## UCI Benchmark — Public Dataset Validation
+## UCI Benchmark 
+### Public Dataset Validation 
 
 To test whether the anomaly detection framing transfers beyond the ESP32 hardware, the same
 pipeline was applied to a public occupancy dataset from the UCI repository. Five environmental

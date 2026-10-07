@@ -1,4 +1,5 @@
-# WiFi CSI Presence Detection — Feasibility Study
+# WiFi CSI Presence Detection 
+## Feasibility Study
  
 **Goal:** Determine whether indoor presence (empty vs occupied room) can be detected from
 WiFi Channel State Information (CSI) collected with a single ESP32, and identify the
@@ -9,7 +10,7 @@ dominant failure mode before investing in more complex solutions.
  
 ---
  
-## Hardware & Signal
+## Hardware and Signal
  
 | Item | Detail |
 |---|---|
@@ -35,7 +36,7 @@ Two back-to-back recording sessions in the same room:
 inflated test scores. Session 2 is a strict held out test of cross session generalisation
 the condition that matters for a real deployment.
  
-**Windowing:** A sliding window of 32 frames (~0.32 s at 100 Hz) is slid within each label
+**Windowing:** A sliding window of 32 frames (~0.32 s at 100 Hz) is applied within each label
 independently, with 50 % overlap (step = 16). Windowing within each label prevents any
 window from straddling an empty => occupied boundary.
  
@@ -77,17 +78,26 @@ drift occurs even within a single session as the environment slowly evolves.
  
 ## Figures
  
-### ROC Curves — All Models (cross-session)
- 
-![ROC curves](figures/roc_comparison.png)
- 
+### ROC Curves (cross-session)
+
+![ROC curves](feasibility-study-outputs/08_roc_all_models.png)
+
 The Conv Autoencoder dominates. Supervised models cluster near the diagonal,
 confirming that learned boundaries from Session 1 do not transfer to Session 2.
- 
+
+### LR Predictions Over Time
+
+![LR predicted probability — Session 2](feasibility-study-outputs/08_lr_timeline.png)
+
+LR predictions on Session 2 in chronological order. Empty frames (blue) in the
+opening segment are classified as occupied with near certainty the boundary
+learned from Session 1 does not transfer. This confirms that RF drift, not model
+capacity is the limiting factor and sets the direction for the full study.
+
 ### Window Size Ablation
- 
-![Window size ablation](figures/ablation.png)
- 
+
+![Window size ablation](feasibility-study-outputs/09_window_size_ablation.png)
+
 The autoencoder is largely insensitive to window size (AUC 0.748–0.754). LR improves
 slightly with more temporal context but plateaus around WS = 128. The gain is small
 relative to the drift bottleneck, so WS = 32 (~0.32 s) is a reasonable default.
@@ -107,12 +117,13 @@ Run `09_figures.ipynb` last to generate the figures above into `figures/`.
  
 ---
  
-## What We Did Next - Full Study
+## What We Did Next
+
 
 The feasibility study revealed three clear limitations:
 
-- **Static occupancy behaviour** — during recording, the occupied sessions consisted of sitting still in one position, which produced CSI patterns closer to an empty room than real presence.
-- **Limited data diversity** — both sessions were recorded back-to-back at the same time of day. The RF environment (temperature, humidity, multipath geometry) was nearly identical, giving models little exposure to natural session to session variation.
+- **Static occupancy behaviour** - during recording, the occupied sessions consisted of sitting still in one position, which produced CSI patterns closer to an empty room than real presence.
+- **Limited data diversity** — both sessions were recorded back to back at the same time of day. The RF environment (temperature, humidity, multipath geometry) was nearly identical, giving models little exposure to natural session to session variation.
 - **Small dataset** — ~71 k frames per session is enough to probe feasibility but too little for deeper models to generalise.
 
 The full study (`../full-study-notebooks/`) addressed all three:
@@ -120,6 +131,6 @@ The full study (`../full-study-notebooks/`) addressed all three:
 1. **More diverse sessions** — recordings spread across morning and evening, capturing genuine environmental drift across times of day.
 2. **Natural movement** — occupied sessions included realistic body movement, not static sitting.
 3. **Overlapping windows** — 50 % overlap significantly increased the number of training windows from the same raw frames, giving larger models more samples to learn from.
-4. **Wider model sweep** — all five architectures (LR, OCSVM, Autoencoder, CNN, Transformer) retested across four window sizes with both non-overlapping and overlapping splits.
+4. **Wider model sweep** — all five architectures (LR, OCSVM, Autoencoder, CNN, Transformer) retested across four window sizes with both no overlapping and overlapping splits.
 
 **Best result:** Conv Autoencoder with overlapping W2 windows **F1 = 0.9725, AUC = 0.9835** a substantial leap over the 0.747 AUC ceiling hit here.

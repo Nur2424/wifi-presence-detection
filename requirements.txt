@@ -6,3 +6,4 @@ matplotlib==3.10.7
 pyserial==3.5
 jupyter==1.0.0
 ipykernel==6.29.5
+ucimlrepo==0.0.7

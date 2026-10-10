@@ -1,7 +1,13 @@
 #!/bin/bash
 
+# ── USER CONFIGURATION ────────────────────────────────────────────────────────
+# Edit these two paths to match your local installation before running.
+# ESP-IDF setup guide: https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/
+# ESP-CSI repo: https://github.com/espressif/esp-csi
 IDF_PATH="$HOME/esp/esp-idf"
 FIRMWARE_DIR="$HOME/esp/esp-csi/examples/get-started/csi_recv_router"
+# ─────────────────────────────────────────────────────────────────────────────
+
 LOGGER="$(dirname "$0")/csi_logger.py"
 
 echo ""

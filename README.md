@@ -236,13 +236,11 @@ wifi-presence-detection/
 
 ---
 
-
-## How to Reproduce
-
 ### Requirements
 
 - Python 3.10+
-- CPU sufficient for all experiments, no GPU required
+- GPU recommended (MPS on Apple Silicon or CUDA) CPU works but is slow
+- `06_overlapping_windows.ipynb` is computationally heavy expect a long runtime on CPU
 
 ```bash
 git clone https://github.com/Nur2424/wifi-presence-detection

@@ -79,4 +79,4 @@ This is a course / portfolio project, not a deployment ready system. It uses one
 
 ## What we did next
 
-This UCI study confirmed that the one class anomaly detection approach is viable. We then extended it to **real WiFi CSI signals** collected with an ESP32 a harder problem because the signal drifts across sessions due to environmental change. After collecting 7 sessions across multiple days and times of day, the best model (Conv Autoencoder with overlapping 1-second windows) reached **F1 = 0.9725, AUC = 0.9835** on a held out cross day test set. See `feasibility-study-notebooks/` and `full-study-notebooks/` for the full pipeline.
+This UCI study confirmed that the one class anomaly detection approach is viable. We then extended it to **real WiFi CSI signals** collected with an ESP32 a harder problem because the signal drifts across sessions due to environmental change. After collecting 11 sessions across multiple days and times of day, the best model (Conv Autoencoder with overlapping 1-second windows) reached **F1 = 0.9725, AUC = 0.9835** on a held out cross day test set. See `feasibility-study-notebooks/` and `full-study-notebooks/` for the full pipeline.

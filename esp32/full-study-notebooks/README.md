@@ -51,6 +51,8 @@ best training configuration for each model.
 **Sessions:** 11 recording sessions across 2 days (4 night sessions, 7 morning sessions).
 Labels: `empty` (room unoccupied) and `exist` (room occupied).
 
+**Total:** 376,514 labelled CSI frames, 189,933 empty-room, 186,581 occupied.
+
 ![CSI amplitude across all sessions](full-study-outputs/00_full_temporal_signal.png)
 
 Mean and std amplitude across all sessions concatenated in recording order.

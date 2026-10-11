@@ -15,7 +15,7 @@ dominant failure mode before investing in more complex solutions.
 | Item | Detail |
 |---|---|
 | Device | ESP32 with `esp-idf` CSI extraction |
-| Packet rate | ~100 Hz |
+| Packet rate | ~80 Hz |
 | Raw subcarriers | 64 (OFDM) |
 | **Active subcarriers** | **51** (dropped: DC null @ idx 0, lower guard @ idx 1, upper guards @ idx 27–36, upper guard @ idx 63) |
 | Features per frame | 55 (51 amplitudes + `csi_mean`, `csi_std`, `csi_max`, `csi_energy`) |
@@ -129,7 +129,7 @@ The full study (`../full-study-notebooks/`) addressed all three:
 
 1. **More diverse sessions** — recordings spread across morning and evening, capturing genuine environmental drift across times of day.
 2. **Natural movement** — occupied sessions included realistic body movement, not static sitting.
-3. **Overlapping windows** — 50 % overlap significantly increased the number of training windows from the same raw frames, giving larger models more samples to learn from.
+3. **Overlapping windows** — a stride sweep (notebook 06) found the best training stride per window size, multiplying available training samples from the same raw recordings without collecting more data.
 4. **Wider model sweep** — all five architectures (LR, OCSVM, Autoencoder, CNN, Transformer) retested across four window sizes with both no overlapping and overlapping splits.
 
 **Best result:** Conv Autoencoder with overlapping W2 windows **F1 = 0.9725, AUC = 0.9835** a substantial leap over the 0.747 AUC ceiling hit here.

@@ -27,7 +27,7 @@ Three substudies build on each other: a single session feasibility proof, a mult
 |---|---|---|
 | **Feasibility** | 2 sessions, 1 day | Is CSI amplitude separable at all? |
 | **Full study** | 11 sessions, 2 days × 2 times of day | Does it hold across RF drift? |
-| **UCI benchmark** | Public WiFi dataset | Does the anomaly detection framing transfer? |
+| **UCI benchmark** | Public occupancy sensor dataset | Does the anomaly detection framing transfer? |
 
 Two model families are used throughout. **Supervised models** (LR, CNN, Transformer) are trained on labelled data from both classes. **One-class models** (Autoencoder, OCSVM) are trained only on empty room frames and flag occupied frames as anomalies at inference time.
 
@@ -55,7 +55,7 @@ The full pipeline: raw I/Q from the ESP32 -> amplitude conversion -> guard-band 
 The ESP32 firmware (`esp-csi/examples/get-started/csi_recv_router`) reports raw I/Q pairs for 64 subcarriers at 921600 baud. `hardware/csi_logger.py` reads the serial stream, converts I/Q -> amplitude via **√(i² + q²)** per subcarrier pair, discards the first 5 seconds of each capture for hardware channel stabilisation, and writes labelled rows to CSV in real time. Labels are entered on the keyboard: `0` = empty, `1` = exist.
 
 ```bash
-# Flash firmware + launch logger in one step
+# Flash firmware + launch logger in one step 
 bash hardware/start.sh
 ```
 
@@ -120,7 +120,7 @@ At W3 and W4, non-overlapping extraction yields only 726 and 360 windows respect
 |:---:|:---:|
 | ![F1 heatmap baseline](esp32/full-study-notebooks/full-study-outputs/07_f1_heatmap.png) | ![ΔF1 heatmap overlapping](esp32/full-study-notebooks/full-study-outputs/06_delta_f1_heatmap.png) |
 
-W1 (single frame) is excluded from the overlapping experiment a window of one frame cannot be cannot be strided.
+W1 (single frame) is excluded from the overlapping experiment a window of one frame cannot be strided.
 
 All models plateau near W2 the narrow gap between LR and deep models confirms a data limited regime.
 Overlapping stride addresses this directly a sliding window with stride S < T multiplies available

@@ -206,6 +206,37 @@ loses the local spectral structure that convolutional receptive fields capture.
 
 ---
 
+## Project Structure
+ 
+```
+wifi-presence-detection/
+├── diagrams/                          # Pipeline diagram (PNG + SVG)
+│   └── scripts/pipeline_diagram.py    # Script used to generate the diagram
+├── esp32/
+│   ├── data/
+│   │   ├── feasibility-study/
+│   │   │   ├── raw/                  # Raw CSI sessions (2 sessions)
+│   │   │   └── processed/            # Train/test splits + scaler
+│   │   └── full-study/
+│   │       ├── raw/                  # Raw CSI sessions (11 sessions, 2 days)
+│   │       └── processed/            # Merged + labelled CSV
+│   ├── feasibility-study-notebooks/  # Phase 1  proof of concept (10 notebooks)
+│   └── full-study-notebooks/         # Phase 2  full pipeline (8 notebooks)
+├── hardware/
+│   ├── start.sh                      # Flash firmware + start logger
+│   └── csi_logger.py                 # Serial logger saves CSI to CSV
+├── uci/
+│   ├── uci-notebooks/                # UCI benchmark study (5 notebooks)
+│   ├── uci-data/                     # Prepared benchmark dataset
+│   └── uci-outputs/                  # Plots and score arrays
+├── LICENSE
+├── README.md
+└── requirements.txt
+```
+
+---
+
+
 ## How to Reproduce
 
 ### Requirements
@@ -214,7 +245,7 @@ loses the local spectral structure that convolutional receptive fields capture.
 - CPU sufficient for all experiments, no GPU required
 
 ```bash
-git clone https://github.com/<username>/wifi-presence-detection
+git clone https://github.com/Nur2424/wifi-presence-detection
 cd wifi-presence-detection
 pip install -r requirements.txt
 ```

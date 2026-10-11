@@ -48,12 +48,12 @@ window from straddling an empty => occupied boundary.
 |---|---|---|
 | `01_baseline_lr.ipynb` | Logistic Regression | 0.640 |
 | `02_cnn_classifier.ipynb` | 1D CNN | 0.582 |
-| `03_transformer.ipynb` | Transformer | 0.669 |
+| `03_transformer.ipynb` | Transformer | 0.612 |
 | `04_autoencoder.ipynb` | Conv Autoencoder (anomaly detection) | **0.747** |
 | `05_ocsvm.ipynb` | One-Class SVM | 0.655 |
 | `06_autoencoder_within_session2.ipynb` | AE — intra-session test | 0.627 |
 | `07_window_size_ablation.ipynb` | LR + AE across WS ∈ {32, 64, 128, 256} | — |
-| `08_long_window_lr.ipynb` | LR with WS = 512 | — |
+| `08_long_window_lr.ipynb` | LR with WS ∈ {1500, 3000} (15 s, 30 s) | — |
 | `09_figures.ipynb` | Final publication figures | — |
  
 ---
@@ -98,7 +98,7 @@ capacity is the limiting factor and sets the direction for the full study.
 
 ![Window size ablation](feasibility-study-outputs/09_window_size_ablation.png)
 
-The autoencoder is largely insensitive to window size (AUC 0.748–0.754). LR improves
+The autoencoder is largely insensitive to window size (AUC 0.739–0.747). LR improves
 slightly with more temporal context but plateaus around WS = 128. The gain is small
 relative to the drift bottleneck, so WS = 32 (~0.32 s) is a reasonable default.
  
@@ -107,12 +107,11 @@ relative to the drift bottleneck, so WS = 32 (~0.32 s) is a reasonable default.
 ## Running the Notebooks
  
 ```bash
-pip install numpy scipy scikit-learn torch matplotlib
-# data must be at ../data/feasibility-study/processed/
+pip install numpy scikit-learn torch matplotlib
 jupyter lab
 ```
  
-Run notebooks 01–07 in order. Each notebook saves intermediate data to `plot_data/`.
+Run notebooks 00–08 in order. Each notebook saves intermediate data to `plot_data/`.
 Run `09_figures.ipynb` last to generate the figures above into `figures/`.
  
 ---
